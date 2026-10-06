@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Roleta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;700;800&family=Unbounded:wght@600;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<div class="color-bars" aria-hidden="true"></div>
+
+<main class="app">
+  <h1 class="title" id="wheelTitle">O que assistir hoje?</h1>
+
+  <div class="stage">
+    <svg class="pointer" viewBox="0 0 40 44" aria-hidden="true">
+      <path d="M20 41 L4 9 Q20 -1 36 9 Z" fill="#FFD23F" stroke="#17123A" stroke-width="3" stroke-linejoin="round"/>
+    </svg>
+
+    <div class="wheel" id="wheel">
+      <svg viewBox="-100 -100 200 200" role="img" aria-label="Roleta">
+        <g id="sliceLayer"></g>
+        <g id="labelLayer"></g>
+        <circle class="rim" r="97"></circle>
+      </svg>
+    </div>
+
+    <div class="hub" aria-hidden="true"></div>
+  </div>
+
+  <button type="button" class="spin-button" id="spinButton">Girar</button>
+  <p class="sr-only" id="liveRegion" aria-live="polite"></p>
+
+  <section class="settings" aria-labelledby="settingsHeading">
+    <h2 class="settings-heading" id="settingsHeading">Ajustes da roleta</h2>
+
+    <fieldset class="settings-fields" id="settingsFields">
+      <legend class="sr-only">Ajustes da roleta</legend>
+
+      <label class="field-label" for="wheelNameInput">Nome da roleta</label>
+      <input class="text-input" id="wheelNameInput" type="text" maxlength="40"
+             placeholder="Roleta" autocomplete="off" enterkeyhint="done">
+
+      <div class="count-row">
+        <label class="field-label" for="itemCountInput">Quantidade de itens</label>
+        <div class="stepper">
+          <button type="button" class="stepper-button" id="decreaseButton" aria-label="Diminuir quantidade de itens">−</button>
+          <input class="count-input" id="itemCountInput" type="number" inputmode="numeric" min="2" max="24">
+          <button type="button" class="stepper-button" id="increaseButton" aria-label="Aumentar quantidade de itens">+</button>
+        </div>
+      </div>
+
+      <ul class="item-list" id="itemList"></ul>
+
+      <p class="hint">De 2 a 24 itens. Tudo fica salvo neste aparelho.</p>
+    </fieldset>
+  </section>
+</main>
+
+<div class="result" id="result" role="dialog" aria-modal="true" aria-labelledby="resultName" hidden>
+  <div class="result-card" id="resultCard">
+    <p class="result-kicker">Caiu em</p>
+    <p class="result-name" id="resultName"></p>
+    <div class="result-actions">
+      <button type="button" class="result-button is-primary" id="spinAgainButton">Girar de novo</button>
+      <button type="button" class="result-button" id="removeWinnerButton">Tirar da roleta</button>
+      <button type="button" class="result-button is-quiet" id="closeResultButton">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
