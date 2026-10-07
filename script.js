@@ -4,13 +4,15 @@
   /* ---------- Configuração ---------- */
   const storageKey = 'roletaTv.v1';
   const minItems = 2;
-  const maxItems = 24;
+  const maxItems = 100;
+  const denseThreshold = 24;   // acima disso a roleta fica "densa": fonte e linhas menores
   const svgNs = 'http://www.w3.org/2000/svg';
 
   const wheelRadius = 96;
   const labelOuterRadius = 85;                 // onde o texto termina (perto da borda)
   const labelMaxLength = labelOuterRadius - 24; // espaço útil até o miolo
   const minLabelSize = 4.2;
+  const minLabelSizeDense = 2.4;
 
   // Ordem pensada pra vizinhos sempre contrastarem (inclusive o último com o primeiro)
   const palette = [
@@ -113,17 +115,20 @@
     if (total <= 12) return 8;
     if (total <= 16) return 6.6;
     if (total <= 20) return 5.6;
-    return 4.8;
+    if (total <= denseThreshold) return 4.8;
+    // Roleta densa: a fonte acompanha a largura da fatia (~raio 72), sem passar de 4.8
+    const sliceWidth = (Math.PI * 2 * 72) / total;
+    return clamp(sliceWidth * 0.75, minLabelSizeDense, 4.8);
   }
 
   // Encolhe a fonte até caber; se nem assim couber, corta com reticências
-  function fitLabel(textEl, name, maxSize) {
+  function fitLabel(textEl, name, maxSize, floorSize) {
     textEl.textContent = name;
     textEl.setAttribute('font-size', maxSize);
     let length = textEl.getComputedTextLength();
     if (length <= labelMaxLength) return;
 
-    const size = Math.max(minLabelSize, (maxSize * labelMaxLength) / length);
+    const size = Math.max(floorSize, (maxSize * labelMaxLength) / length);
     textEl.setAttribute('font-size', size.toFixed(2));
     length = textEl.getComputedTextLength();
 
@@ -146,6 +151,9 @@
     const total = state.items.length;
     const sliceAngle = (Math.PI * 2) / total;
     const maxSize = maxLabelSizeFor(total);
+    const isDense = total > denseThreshold;
+    const floorSize = isDense ? Math.min(minLabelSizeDense, maxSize) : minLabelSize;
+    const sliceStroke = isDense ? Math.max(0.2, 0.8 - (total - denseThreshold) * 0.008) : 0.8;
 
     sliceLayer.replaceChildren();
     labelLayer.replaceChildren();
@@ -165,6 +173,7 @@
       slice.setAttribute('class', 'slice');
       slice.setAttribute('d', `M0 0 L${x1} ${y1} A${wheelRadius} ${wheelRadius} 0 0 1 ${x2} ${y2} Z`);
       slice.style.setProperty('--slice-fill', fill);
+      if (isDense) slice.style.strokeWidth = sliceStroke.toFixed(2);
       sliceLayer.appendChild(slice);
 
       const midDegrees = ((startAngle + endAngle) / 2) * (180 / Math.PI);
@@ -176,7 +185,7 @@
       label.setAttribute('dy', '0.35em');
       label.style.setProperty('--label-ink', ink);
       labelLayer.appendChild(label);
-      fitLabel(label, itemLabel(index), maxSize);
+      fitLabel(label, itemLabel(index), maxSize, floorSize);
     }
   }
 
