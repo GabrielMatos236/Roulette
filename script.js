@@ -54,6 +54,36 @@
 
   const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+  /* ---------- Som do giro ---------- */
+  const defaultSpinDurationMs = 5200;       // usado se o áudio não carregar
+  const spinSound = new Audio('spin.mp3');
+  spinSound.preload = 'auto';
+
+  // O giro dura exatamente o tempo do áudio, então os dois terminam juntos
+  function spinDurationFromSound() {
+    const seconds = spinSound.duration;
+    return Number.isFinite(seconds) && seconds > 0
+      ? Math.round(seconds * 1000)
+      : defaultSpinDurationMs;
+  }
+
+  function playSpinSound() {
+    try {
+      spinSound.currentTime = 0;
+      const playing = spinSound.play();
+      if (playing && typeof playing.catch === 'function') {
+        playing.catch(() => { /* navegador bloqueou ou arquivo ausente: a roleta gira igual */ });
+      }
+    } catch (error) { /* som é só um complemento */ }
+  }
+
+  function stopSpinSound() {
+    try {
+      spinSound.pause();
+      spinSound.currentTime = 0;
+    } catch (error) { /* idem */ }
+  }
+
   /* ---------- Estado ---------- */
   let state = loadState() || structuredCloneSafe(defaultState);
   let rotation = 0;          // graus acumulados da roleta
@@ -314,7 +344,7 @@
     const total = state.items.length;
     const sliceDegrees = 360 / total;
     const reducedMotion = reducedMotionQuery.matches;
-    const spinDurationMs = reducedMotion ? 700 : 5200;
+    const spinDurationMs = reducedMotion ? 700 : spinDurationFromSound();
     const blinkDurationMs = reducedMotion ? 600 : 1700;
 
     isSpinning = true;
@@ -336,6 +366,8 @@
     const fullTurns = reducedMotion ? 1 : 5 + Math.floor(Math.random() * 3);
     rotation += fullTurns * 360 + delta;
 
+    // Som e animação disparam no mesmo instante (dentro do clique, que o navegador exige pra tocar áudio)
+    if (!reducedMotion) playSpinSound();
     wheelEl.style.transition = `transform ${spinDurationMs}ms cubic-bezier(0.12, 0.62, 0.08, 1)`;
     wheelEl.style.transform = `rotate(${rotation}deg)`;
 
@@ -376,6 +408,7 @@
   }
 
   function closeResult() {
+    stopSpinSound();
     resultEl.hidden = true;
     rootEl.classList.remove('is-locked');
     clearWinnerHighlight();
